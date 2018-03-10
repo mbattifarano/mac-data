@@ -32,6 +32,22 @@ Features
 
 * TODO
 
+Development setup
+-----------------
+
+1. clone the repository
+
+   $ git clone git@github.com:mbattifarano/mac_data.git
+
+2. Install the development and run-time dependencies
+
+   $ pip install -r requirements/dev.txt -r requirements/run.txt
+
+3. Run the tests
+
+   $ make test
+
+
 Credits
 -------
 

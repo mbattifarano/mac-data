@@ -1,10 +1,12 @@
-from marshmallow import Schema, fields
+import datetime
+import pytz
+from marshmallow import Schema, fields, post_load
+
 from mac_data.marshmallow_ext import Union, Either, NullObject
 
 NULL_VALUES = ("", "-999", "-9999", "-9999.0", "-9999.00")
 
 Null = Union(map(NullObject, NULL_VALUES))
-
 Integer = Either(Null, fields.Integer())
 Float = Either(Null, fields.Float())
 String = Either(Null, fields.String())
@@ -18,6 +20,14 @@ class Date(Schema):
     pretty = String
     tzname = String
     year = Integer
+
+    @post_load
+    def to_datetime(self, data):
+        """After loading the dict, convert to tz-aware datetime"""
+        tz = pytz.timezone(data['tzname'])
+        dt = datetime.datetime(data['year'], data['mon'], data['mday'],
+                               data['hour'], data['min'], 0)
+        return tz.localize(dt)
 
 
 class DailySummary(Schema):
@@ -149,5 +159,5 @@ class Response(Schema):
 
 
 class WeatherUndergroundAPIResponse(Schema):
-    history = fields.Nested(History)
+    history = fields.Nested(History, required=True)
     response = fields.Nested(Response)

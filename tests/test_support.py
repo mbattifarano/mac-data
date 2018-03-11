@@ -18,3 +18,12 @@ def test_dict_flatten():
         ('e',): 3
     }
     assert support.dict_flatten(d) == expected
+
+
+def test_callattr():
+    l = []
+    support.callattr('append', (1,), l)
+    assert l == [1]
+    support.callattr('extend', ([2, 3],), l)
+    assert l == [1, 2, 3]
+    assert support.callattr('pop', None, l) == 3

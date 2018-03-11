@@ -1,3 +1,6 @@
+from toolz import curry
+
+
 def dict_flatten(d, prefix=None):
     """Flatten a dictionary"""
     items = []
@@ -9,6 +12,12 @@ def dict_flatten(d, prefix=None):
         except TypeError:
             items.append((key, v))
     return dict(items)
+
+
+@curry
+def callattr(attr, args, obj):
+    args = args or tuple()
+    return getattr(obj, attr)(*args)
 
 
 def _iteritems(d_l):

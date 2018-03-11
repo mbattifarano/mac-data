@@ -3,9 +3,11 @@
 """Console script for mac_data."""
 import sys
 import click
+import mac_data
 
 
 @click.command()
+@click.version_option(mac_data.__version__)
 def main(args=None):
     """Console script for mac_data."""
     click.echo("Replace this message by putting your code into "

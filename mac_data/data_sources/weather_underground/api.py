@@ -1,3 +1,7 @@
+"""Weather Underground API functions
+
+Defines functions for calling the API and parsing its response.
+"""
 import requests
 from toolz import compose
 

@@ -1,3 +1,10 @@
+"""Weather Underground API Schemas
+
+Defines the expected data schema of the Weather Underground API response.
+
+The marshmallow schema converts the JSON payload into python types.
+"""
+
 import datetime
 import pytz
 from marshmallow import Schema, fields, post_load

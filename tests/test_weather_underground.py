@@ -8,6 +8,7 @@ from toolz import get_in, remove, compose
 from mac_data.support import dict_flatten
 from mac_data.data_sources import weather_underground as w
 from mac_data.data_sources.weather_underground.schema import NULL_VALUES
+from mac_data.data_sources.weather_underground.processing import rename_keys
 
 
 @pytest.fixture
@@ -62,3 +63,14 @@ def test_processing_pipeline(response):
         observations = w.get_data("the_api_key", datetime.date(2017, 3, 9), "15217")
         raw_data = json.loads(response)
         assert len(observations) == len(raw_data['history']['observations'])
+
+
+def test_rename_keys():
+    d = {'a': 1, 'b': "hello", 'c': {'a': 2}}
+    key_map = [
+        (0, 'a'),
+        ('foo', 'b'),
+        ('bar', 'c')
+    ]
+    expected = {0: 1, 'foo': "hello", 'bar': {'a': 2}}
+    assert rename_keys(key_map, d) == expected

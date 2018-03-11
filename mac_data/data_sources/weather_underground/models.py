@@ -1,3 +1,7 @@
+"""Weather Underground Models
+
+Defines SQLAlchemy data models for the weather underground API
+"""
 from mac_data.orm import Base
 from sqlalchemy import Column, Integer, DateTime, Float, String
 

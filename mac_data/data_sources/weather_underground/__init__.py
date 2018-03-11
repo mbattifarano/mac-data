@@ -1,3 +1,5 @@
+"""Weather Underground Data Collection API
+"""
 from toolz import compose
 from toolz.curried import get
 

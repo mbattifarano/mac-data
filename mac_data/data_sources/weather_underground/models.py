@@ -10,6 +10,7 @@ class WeatherUndergroundObservation(Base):
     __tablename__ ='weather_underground_observations'
 
     id = Column(Integer, primary_key=True)
+    zipcode = Column(String, index=True)
     recorded_at = Column(DateTime(timezone=True), index=True)
     temperature = Column(Float)
     dew_point = Column(Float)

@@ -57,12 +57,40 @@ def test_schema_values(response):
 
 
 def test_processing_pipeline(response):
+    def read_float(v):
+        if v == "":
+            return None
+        else:
+            value = float(v)
+            if value < 0:
+                return None
+            else:
+                return value
     with requests_mock.Mocker() as m:
         m.get("http://api.wunderground.com/api/the_api_key/history_20170309/q/15217.json",
               text=response)
         observations = w.get_data("the_api_key", datetime.date(2017, 3, 9), "15217")
         raw_data = json.loads(response)
-        assert len(observations) == len(raw_data['history']['observations'])
+        raw_observations = raw_data['history']['observations']
+        assert len(observations) == len(raw_observations)
+        for ob, raw_ob in zip(observations, raw_observations):
+            assert ob.zipcode == "15217"
+            # The api call is mocked to return a canned response from 2016-09-01
+            assert ob.recorded_at.date() == datetime.date(2016, 9, 1)
+            assert ob.temperature == read_float(raw_ob['tempi'])
+            assert ob.dew_point == read_float(raw_ob['dewpti'])
+            assert ob.humidity == read_float(raw_ob['hum'])
+            assert ob.wind_speed == read_float(raw_ob['wspdi'])
+            assert ob.wind_gust == read_float(raw_ob['wgusti'])
+            assert ob.visibility == read_float(raw_ob['visi'])
+            assert ob.pressure == read_float(raw_ob['pressurei'])
+            assert ob.windchill == read_float(raw_ob['windchilli'])
+            assert ob.heat_index == read_float(raw_ob['heatindexi'])
+            assert ob.precipitation == read_float(raw_ob['precipi'])
+            assert ob.fog == read_float(raw_ob['fog'])
+            assert ob.rain == read_float(raw_ob['rain'])
+            assert ob.snow == read_float(raw_ob['snow'])
+            assert ob.condition == raw_ob['icon']
 
 
 def test_rename_keys():
@@ -74,3 +102,14 @@ def test_rename_keys():
     ]
     expected = {0: 1, 'foo': "hello", 'bar': {'a': 2}}
     assert rename_keys(key_map, d) == expected
+
+
+def test_process_metadata():
+    values = ['the_key', 'the_date', 'the_zipcode']
+    f = w.process_metadata(*values)
+    expected = {
+        '_query:api_key': 'the_key',
+        '_query:on_date': 'the_date',
+        '_query:zipcode': 'the_zipcode'
+    }
+    assert f({}) == expected

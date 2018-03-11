@@ -1,3 +1,6 @@
+from toolz import curry
+
+
 def dict_flatten(d, prefix=None):
     """Flatten a dictionary"""
     items = []
@@ -9,6 +12,17 @@ def dict_flatten(d, prefix=None):
         except TypeError:
             items.append((key, v))
     return dict(items)
+
+
+def collect(*args):
+    """Collect arguments as a tuple"""
+    return args
+
+
+@curry
+def fapply(f, args):
+    """Apply a function to an iterable of arguments"""
+    return f(*args)
 
 
 def _iteritems(d_l):

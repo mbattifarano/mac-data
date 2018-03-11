@@ -8,6 +8,8 @@ from toolz import compose
 
 from mac_data.exceptions import APIRequestFailed
 
+WAIT = 62  # number of seconds to wait between API calls
+
 
 def request_url(api_key, on_date, zipcode):
     """Form the base request url for weather underground"""

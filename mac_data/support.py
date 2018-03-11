@@ -1,3 +1,4 @@
+import time
 from toolz import curry
 
 
@@ -23,6 +24,14 @@ def collect(*args):
 def fapply(f, args):
     """Apply a function to an iterable of arguments"""
     return f(*args)
+
+
+@curry
+def map_sleep(t, f, arglist):
+    """Map a function over a list of arguments with a sleep timer"""
+    for arg in arglist:
+        yield f(arg)
+        time.sleep(t)
 
 
 def _iteritems(d_l):

@@ -1,3 +1,4 @@
+import time
 from mac_data import support
 
 
@@ -18,3 +19,22 @@ def test_dict_flatten():
         ('e',): 3
     }
     assert support.dict_flatten(d) == expected
+
+
+def test_collect():
+    assert support.collect(1, 2, 3) == (1, 2, 3)
+
+
+def test_fapply():
+    def add3(a, b, c):
+        return a + b + c
+    assert support.fapply(add3)([1, 2, 3]) == 6
+
+
+def test_map_sleep():
+    def inc(a): return a + 1
+    f = support.map_sleep(0.1, inc)
+    t0 = time.time()
+    assert list(f(range(4))) == [1, 2, 3, 4]
+    t1 = time.time()
+    assert t1-t0 >= 0.4

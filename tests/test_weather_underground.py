@@ -69,7 +69,7 @@ def test_processing_pipeline(response):
     with requests_mock.Mocker() as m:
         m.get("http://api.wunderground.com/api/the_api_key/history_20170309/q/15217.json",
               text=response)
-        observations = w.get_data("the_api_key", datetime.date(2017, 3, 9), "15217")
+        observations = w.collect_data("the_api_key", datetime.date(2017, 3, 9), "15217")
         raw_data = json.loads(response)
         raw_observations = raw_data['history']['observations']
         assert len(observations) == len(raw_observations)
@@ -113,3 +113,46 @@ def test_process_metadata():
         '_query:zipcode': 'the_zipcode'
     }
     assert f({}) == expected
+
+
+def test_collect_many(response):
+    def read_float(v):
+        if v == "":
+            return None
+        else:
+            value = float(v)
+            if value < 0:
+                return None
+            else:
+                return value
+    on_dates = [datetime.date(2017, 3, 9), datetime.date(2017, 3, 10)]
+    zipcodes = ["15217", "15216"]
+    t = 0  # don't sleep during tests
+    with requests_mock.Mocker() as m:
+        m.get("http://api.wunderground.com/api/the_api_key/history_20170309/q/15217.json",
+              text=response)
+        m.get("http://api.wunderground.com/api/the_api_key/history_20170310/q/15216.json",
+              text=response)
+        raw_data = json.loads(response)
+        raw_observations = raw_data['history']['observations']
+        obs_iter = w.collect_many("the_api_key", on_dates, zipcodes, t)
+        for observations, zipcode in zip(obs_iter, zipcodes):
+            assert len(observations) == len(raw_observations)
+            for ob, raw_ob in zip(observations, raw_observations):
+                assert ob.zipcode == zipcode
+                # The api call is mocked to return a canned response from 2016-09-01
+                assert ob.recorded_at.date() == datetime.date(2016, 9, 1)
+                assert ob.temperature == read_float(raw_ob['tempi'])
+                assert ob.dew_point == read_float(raw_ob['dewpti'])
+                assert ob.humidity == read_float(raw_ob['hum'])
+                assert ob.wind_speed == read_float(raw_ob['wspdi'])
+                assert ob.wind_gust == read_float(raw_ob['wgusti'])
+                assert ob.visibility == read_float(raw_ob['visi'])
+                assert ob.pressure == read_float(raw_ob['pressurei'])
+                assert ob.windchill == read_float(raw_ob['windchilli'])
+                assert ob.heat_index == read_float(raw_ob['heatindexi'])
+                assert ob.precipitation == read_float(raw_ob['precipi'])
+                assert ob.fog == read_float(raw_ob['fog'])
+                assert ob.rain == read_float(raw_ob['rain'])
+                assert ob.snow == read_float(raw_ob['snow'])
+                assert ob.condition == raw_ob['icon']

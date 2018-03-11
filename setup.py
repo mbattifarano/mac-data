@@ -13,7 +13,7 @@ with open('HISTORY.rst') as history_file:
 
 with open('requirements/run.txt') as requirements_file:
     requirements = requirements_file.read()
-    
+
 with open('requirements/dev.txt') as dev_requires_file:
     setup_requirements = dev_requires_file.read()
     test_requirements = setup_requirements
@@ -36,7 +36,7 @@ setup(
     description="Urban data scraper is a framework for regularly scraping data from various sources",
     entry_points={
         'console_scripts': [
-            'mac_data=mac_data.cli:main',
+            'mac-data=mac_data.cli:main',
         ],
     },
     install_requires=requirements,

@@ -2,5 +2,5 @@ class MACDataException(Exception):
     pass
 
 
-class APIRequestFailed(Exception):
+class APIRequestFailed(MACDataException):
     pass

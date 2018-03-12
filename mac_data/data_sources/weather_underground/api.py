@@ -17,7 +17,13 @@ WAIT = 62  # number of seconds to wait between API calls
 
 
 def request_url(api_key, on_date, zipcode):
-    """Form the base request url for weather underground"""
+    """Form the base request url for weather underground
+
+    :param api_key: str weather underground API key
+    :param on_date: datetime.date date to query
+    :param zipcode: str zip code to query
+    :return: str query url
+    """
     template = "http://api.wunderground.com/api/{key}/history_{date}/q/{zipcode}.json"
     return template.format(key=api_key, date=on_date.strftime("%Y%m%d"), zipcode=zipcode)
 
@@ -26,7 +32,12 @@ api_query_args = getargspec(request_url).args
 
 
 def get_json_or_raise(response):
-    """Raise an exception when the request failed"""
+    """Recover the json payload or raise an exception
+
+    :rtype: dict
+    :param response: request.Response
+    :return: json payload
+    """
     if response.status_code != 200:
         raise APIRequestFailed(response.status_code)
     data = response.json()

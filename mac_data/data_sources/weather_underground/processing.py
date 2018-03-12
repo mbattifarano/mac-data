@@ -35,19 +35,39 @@ key_map = [
 
 @curry
 def rename_keys(key_map, d):
-    """Renames the keys of d using (new, old) key pairs in key_map"""
+    """Renames the keys of d using (new, old) key pairs in key_map
+
+    :rtype: dict
+    :param key_map: dict of (new key, old key) pairs
+    :param d: dict
+    :return: renamed dictionary
+    """
     return {new_key: d[old_key]
             for new_key, old_key in key_map}
 
 
 @curry
 def named_query_params(arg_names, arg_values):
+    """Return prefixed argument name value pairs
+
+    :rtype: list
+    :param arg_names: list of argument names
+    :param arg_values: list of argument values
+    :return: name value pairs
+    """
     prefixed_names = map(prefix_query_param, arg_names)
     return zip(prefixed_names, arg_values)
 
 
 @curry
 def merge_metadata(metadata, observation):
+    """Merge metadata and observation dictionaries
+
+    :rtype: dict
+    :param metadata: dict of query metadata
+    :param observation: dict of observation data
+    :return: data dictionary
+    """
     return merge(metadata, observation)
 
 

@@ -51,4 +51,4 @@ def test_date_iter():
         datetime.date(2017, 3, 6),
         datetime.date(2017, 3, 8),
     ]
-    assert list(support.date_iter(start, stop, step)) == expected
+    assert list(support.date_range(start, stop, step)) == expected

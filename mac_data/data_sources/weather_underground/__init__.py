@@ -6,7 +6,7 @@ import itertools as it
 from toolz import compose, juxt, map, curry
 from toolz.curried import get, do
 
-from mac_data.support import fapply, map_sleep, flatten, date_iter
+from mac_data.support import fapply, map_sleep, flatten, date_range
 from mac_data.output import CSVAdapter
 from .api import WAIT, query_api
 from .schema import WeatherUndergroundAPIResponse
@@ -33,7 +33,14 @@ collect_data = compose(                       # create observation models from a
 
 
 def collect_many(api_key, on_dates, zipcodes, t):
-    """Collect data over many dates and zipcodes"""
+    """Collect data over many dates and zipcodes
+
+    :param api_key: str weather underground api key
+    :param on_dates: list of dates
+    :param zipcodes: list of zipcodes
+    :param t: float delay between api calls
+    :return: list of observations
+    """
     collect_one = curry(collect_data)
     process = compose(
         flatten,

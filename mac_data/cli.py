@@ -6,11 +6,13 @@ import click
 import itertools as it
 import logging
 import mac_data
-from mac_data.support import date_iter, flatten
+from mac_data.support import date_iter
 from mac_data.api_keys import get_api_key
 from mac_data import output
 from mac_data.data_sources import weather_underground as wu
 from marshmallow.fields import Date
+
+log = logging.getLogger(__name__)
 
 date_t = Date().deserialize
 
@@ -54,10 +56,11 @@ def weather_underground(ctx, start_date, end_date, zip_codes, csv_out):
     """
     api_key = get_api_key(ctx.obj['key_file'], 'weather_underground')
     if not zip_codes:
-        return 0
-    on_dates, zipcodes = zip(*it.product(date_iter(start_date, end_date), zip_codes))
-    observations = list(flatten(wu.collect_many(api_key, on_dates, zipcodes)))
-    if csv_out:
+        return []
+    on_dates, zipcodes = map(list, zip(*it.product(date_iter(start_date, end_date), zip_codes)))
+    observations = list(wu.collect_many(api_key, on_dates, zipcodes, wu.WAIT))
+    if csv_out is not None:
+        log.info("Writing data to {}".format(csv_out.name))
         adapter = output.CSVAdapter(csv_out, wu.WeatherUndergroundObservationSchema)
         adapter.dump(observations)
     return 0

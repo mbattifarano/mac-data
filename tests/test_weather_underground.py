@@ -1,17 +1,19 @@
+import os
 import pytest
 import requests_mock
-from cStringIO import StringIO
+from click.testing import CliRunner
 
 import datetime
 import pytz
 import simplejson as json
 from marshmallow import Schema, fields
 from toolz import get_in, remove, compose
+from mac_data import cli
 from mac_data.support import dict_flatten
+from mac_data.output import CSVAdapter
 from mac_data.data_sources import weather_underground as w
 from mac_data.data_sources.weather_underground.schema import NULL_VALUES
 from mac_data.data_sources.weather_underground.processing import rename_keys
-from mac_data.data_sources.weather_underground.output import CSVAdapter
 
 
 @pytest.fixture
@@ -138,27 +140,67 @@ def test_collect_many(response):
               text=response)
         raw_data = json.loads(response)
         raw_observations = raw_data['history']['observations']
-        obs_iter = w.collect_many("the_api_key", on_dates, zipcodes, t)
-        for observations, zipcode in zip(obs_iter, zipcodes):
-            assert len(observations) == len(raw_observations)
-            for ob, raw_ob in zip(observations, raw_observations):
-                assert ob.zipcode == zipcode
-                # The api call is mocked to return a canned response from 2016-09-01
-                assert ob.recorded_at.date() == datetime.date(2016, 9, 1)
-                assert ob.temperature == read_float(raw_ob['tempi'])
-                assert ob.dew_point == read_float(raw_ob['dewpti'])
-                assert ob.humidity == read_float(raw_ob['hum'])
-                assert ob.wind_speed == read_float(raw_ob['wspdi'])
-                assert ob.wind_gust == read_float(raw_ob['wgusti'])
-                assert ob.visibility == read_float(raw_ob['visi'])
-                assert ob.pressure == read_float(raw_ob['pressurei'])
-                assert ob.windchill == read_float(raw_ob['windchilli'])
-                assert ob.heat_index == read_float(raw_ob['heatindexi'])
-                assert ob.precipitation == read_float(raw_ob['precipi'])
-                assert ob.fog == read_float(raw_ob['fog'])
-                assert ob.rain == read_float(raw_ob['rain'])
-                assert ob.snow == read_float(raw_ob['snow'])
-                assert ob.condition == raw_ob['icon']
+        raw_observations = raw_observations + raw_observations
+        observations = list(w.collect_many("the_api_key", on_dates, zipcodes, t))
+        assert len(observations) == len(raw_observations)
+        for i, (ob, raw_ob) in enumerate(zip(observations, raw_observations)):
+            zipcode = "15217" if i < len(observations)/2 else "15216"
+            assert ob.zipcode == zipcode
+            # The api call is mocked to return a canned response from 2016-09-01
+            assert ob.recorded_at.date() == datetime.date(2016, 9, 1)
+            assert ob.temperature == read_float(raw_ob['tempi'])
+            assert ob.dew_point == read_float(raw_ob['dewpti'])
+            assert ob.humidity == read_float(raw_ob['hum'])
+            assert ob.wind_speed == read_float(raw_ob['wspdi'])
+            assert ob.wind_gust == read_float(raw_ob['wgusti'])
+            assert ob.visibility == read_float(raw_ob['visi'])
+            assert ob.pressure == read_float(raw_ob['pressurei'])
+            assert ob.windchill == read_float(raw_ob['windchilli'])
+            assert ob.heat_index == read_float(raw_ob['heatindexi'])
+            assert ob.precipitation == read_float(raw_ob['precipi'])
+            assert ob.fog == read_float(raw_ob['fog'])
+            assert ob.rain == read_float(raw_ob['rain'])
+            assert ob.snow == read_float(raw_ob['snow'])
+            assert ob.condition == raw_ob['icon']
+
+
+def test_collect_many_one(response):
+    def read_float(v):
+        if v == "":
+            return None
+        else:
+            value = float(v)
+            if value < 0:
+                return None
+            else:
+                return value
+    on_dates = [datetime.date(2017, 3, 9)]
+    zipcodes = ["15217"]
+    t = 0  # don't sleep during tests
+    with requests_mock.Mocker() as m:
+        m.get("http://api.wunderground.com/api/the_api_key/history_20170309/q/15217.json",
+              text=response)
+        raw_data = json.loads(response)
+        raw_observations = raw_data['history']['observations']
+        obs_iter = list(w.collect_many("the_api_key", on_dates, zipcodes, t))
+        for ob, raw_ob in zip(obs_iter, raw_observations):
+            assert ob.zipcode == "15217"
+            # The api call is mocked to return a canned response from 2016-09-01
+            assert ob.recorded_at.date() == datetime.date(2016, 9, 1)
+            assert ob.temperature == read_float(raw_ob['tempi'])
+            assert ob.dew_point == read_float(raw_ob['dewpti'])
+            assert ob.humidity == read_float(raw_ob['hum'])
+            assert ob.wind_speed == read_float(raw_ob['wspdi'])
+            assert ob.wind_gust == read_float(raw_ob['wgusti'])
+            assert ob.visibility == read_float(raw_ob['visi'])
+            assert ob.pressure == read_float(raw_ob['pressurei'])
+            assert ob.windchill == read_float(raw_ob['windchilli'])
+            assert ob.heat_index == read_float(raw_ob['heatindexi'])
+            assert ob.precipitation == read_float(raw_ob['precipi'])
+            assert ob.fog == read_float(raw_ob['fog'])
+            assert ob.rain == read_float(raw_ob['rain'])
+            assert ob.snow == read_float(raw_ob['snow'])
+            assert ob.condition == raw_ob['icon']
 
 
 def test_csv_adapter(file_object):
@@ -178,3 +220,28 @@ def test_csv_adapter(file_object):
     adapter.dump(data)
     file_object.seek(0)
     assert file_object.read() == expected
+
+
+def test_cli(response, tmpfile):
+    runner = CliRunner()
+    args = [
+        '-v',
+        '--key-file',
+        'tests/fixtures/test_key_file.ini',
+        'weather_underground',
+        '2017-03-09',
+        '2017-03-10',
+        '15217',
+        '--csv-out',
+        tmpfile.name
+    ]
+    url = "http://api.wunderground.com/api/the_api_key/history_20170309/q/15217.json"
+    with requests_mock.Mocker() as m:
+        m.get(url, text=response)
+        runner.invoke(cli.main, args)
+        tmpfile.seek(0)
+        contents = tmpfile.read()
+        lines = contents.splitlines()
+        header = lines[0]
+        assert header == 'zipcode,recorded_at,temperature,dew_point,humidity,wind_speed,wind_gust,visibility,pressure,windchill,heat_index,precipitation,fog,rain,snow,condition'
+        assert len(lines) == 46

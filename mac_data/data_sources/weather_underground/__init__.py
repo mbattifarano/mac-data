@@ -1,13 +1,16 @@
 """Weather Underground Data Collection API
 """
 import logging
+import itertools as it
+
 from toolz import compose, juxt, map, curry
 from toolz.curried import get, do
 
-from mac_data.support import fapply, map_sleep
+from mac_data.support import fapply, map_sleep, flatten, date_iter
+from mac_data.output import CSVAdapter
+from .api import WAIT, query_api
 from .schema import WeatherUndergroundAPIResponse
 from .processing import process_response, extract_observations, process_metadata
-from .api import WAIT, query_api
 from .models import WeatherUndergroundObservation, WeatherUndergroundObservationSchema
 
 log = logging.getLogger(__name__)
@@ -29,10 +32,11 @@ collect_data = compose(                       # create observation models from a
 )
 
 
-def collect_many(api_key, on_dates, zipcodes, t=WAIT):
+def collect_many(api_key, on_dates, zipcodes, t):
     """Collect data over many dates and zipcodes"""
     collect_one = curry(collect_data)
     process = compose(
+        flatten,
         map_sleep(t, fapply(collect_one(api_key))),
         zip
     )

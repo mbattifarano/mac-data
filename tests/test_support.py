@@ -38,7 +38,7 @@ def test_map_sleep():
     t0 = time.time()
     assert list(f(range(4))) == [1, 2, 3, 4]
     t1 = time.time()
-    assert t1-t0 >= 0.4
+    assert t1-t0 >= 0.3
 
 
 def test_date_iter():

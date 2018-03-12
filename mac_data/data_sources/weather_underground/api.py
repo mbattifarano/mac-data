@@ -2,11 +2,16 @@
 
 Defines functions for calling the API and parsing its response.
 """
+import logging
 from inspect import getargspec
 import requests
 from toolz import compose
+from toolz.curried import do
 
 from mac_data.exceptions import APIRequestFailed
+from mac_data.support import attribute
+
+log = logging.getLogger(__name__)
 
 WAIT = 62  # number of seconds to wait between API calls
 
@@ -34,6 +39,10 @@ def get_json_or_raise(response):
 
 query_api = compose(
     get_json_or_raise,
+    do(compose(log.info,
+               "Received response with status {}".format,
+               attribute('status_code'))),
     requests.get,
+    do(compose(log.info, "Sending request to {}".format)),
     request_url
 )

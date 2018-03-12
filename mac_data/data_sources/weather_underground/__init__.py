@@ -1,13 +1,16 @@
 """Weather Underground Data Collection API
 """
+import logging
 from toolz import compose, juxt, map, curry
-from toolz.curried import get
+from toolz.curried import get, do
 
 from mac_data.support import fapply, map_sleep
 from .schema import WeatherUndergroundAPIResponse
 from .processing import process_response, extract_observations, process_metadata
 from .api import WAIT, query_api
 from .models import WeatherUndergroundObservation, WeatherUndergroundObservationSchema
+
+log = logging.getLogger(__name__)
 
 get_observations = compose(                   # query the api and extract observations
     extract_observations,                     # get the list of observations from payload
@@ -17,6 +20,9 @@ get_observations = compose(                   # query the api and extract observ
 )
 
 collect_data = compose(                       # create observation models from api response
+    do(compose(log.info,
+               "Created {} observations".format,
+               len)),
     process_response,                         # create observations models
     fapply(map),                              # merge metadata into each observation
     juxt(process_metadata, get_observations)  # process query params as metadata and api call

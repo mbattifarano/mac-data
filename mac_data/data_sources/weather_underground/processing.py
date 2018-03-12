@@ -2,11 +2,14 @@
 
 Defines functions to transform the deserialized API response into data models
 """
+import logging
 from toolz import compose, curry, merge
-from toolz.curried import get_in, map
+from toolz.curried import get_in, map, do
 from .models import WeatherUndergroundObservation
 from .api import api_query_args
 from mac_data.support import collect
+
+log = logging.getLogger(__name__)
 
 prefix_query_param = '_query:{}'.format
 

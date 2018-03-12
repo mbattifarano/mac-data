@@ -4,6 +4,7 @@
 import sys
 import click
 import itertools as it
+import logging
 import mac_data
 from mac_data.support import date_iter, flatten
 from mac_data.api_keys import get_api_key
@@ -14,16 +15,30 @@ from marshmallow.fields import Date
 date_t = Date().deserialize
 
 
+def _log_level_from_verbosity(v):
+    return {
+        0: logging.WARNING,
+        1: logging.INFO,
+        2: logging.DEBUG
+    }.get(v, logging.DEBUG)
+
+
 @click.group()
 @click.pass_context
 @click.version_option(mac_data.__version__)
 @click.option('--key-file', default='api_keys.ini', type=click.File(),
               help="Path to api key ini file")
-def main(ctx, key_file):
+@click.option('-v', '--verbose', count=True)
+def main(ctx, key_file, verbose):
     """Command line tool for data collection from web APIs"""
     ctx.obj = {
         'key_file': key_file
     }
+    logging.basicConfig(
+        level=_log_level_from_verbosity(verbose),
+        format="%(asctime)s %(levelname)s %(name)s -- %(message)s",
+        datefmt="%xT%X"
+    )
     return 0
 
 

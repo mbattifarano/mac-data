@@ -1,6 +1,9 @@
+import logging
 import time
 import datetime
 from toolz import curry
+
+log = logging.getLogger(__name__)
 
 
 def dict_flatten(d, prefix=None):
@@ -28,11 +31,19 @@ def fapply(f, args):
 
 
 @curry
+def attribute(name, obj):
+    return getattr(obj, name)
+
+
+@curry
 def map_sleep(t, f, arglist):
     """Map a function over a list of arguments with a sleep timer"""
-    for arg in arglist:
-        yield f(arg)
+    arg_list = iter(arglist)
+    yield f(arg_list.next())
+    for arg in arg_list:
+        log.debug("Sleeping for {} seconds".format(t))
         time.sleep(t)
+        yield f(arg)
 
 
 ONE_DAY = datetime.timedelta(days=1)

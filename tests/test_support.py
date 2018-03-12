@@ -1,4 +1,5 @@
 import time
+import datetime
 from mac_data import support
 
 
@@ -38,3 +39,16 @@ def test_map_sleep():
     assert list(f(range(4))) == [1, 2, 3, 4]
     t1 = time.time()
     assert t1-t0 >= 0.4
+
+
+def test_date_iter():
+    start = datetime.date(2017, 3, 2)
+    stop = datetime.date(2017, 3, 10)
+    step = datetime.timedelta(days=2)
+    expected = [
+        datetime.date(2017, 3, 2),
+        datetime.date(2017, 3, 4),
+        datetime.date(2017, 3, 6),
+        datetime.date(2017, 3, 8),
+    ]
+    assert list(support.date_iter(start, stop, step)) == expected

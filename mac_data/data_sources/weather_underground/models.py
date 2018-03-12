@@ -4,10 +4,11 @@ Defines SQLAlchemy data models for the weather underground API
 """
 from mac_data.orm import Base
 from sqlalchemy import Column, Integer, DateTime, Float, String
+from marshmallow import Schema, fields
 
 
 class WeatherUndergroundObservation(Base):
-    __tablename__ ='weather_underground_observations'
+    __tablename__ = 'weather_underground_observations'
 
     id = Column(Integer, primary_key=True)
     zipcode = Column(String, index=True)
@@ -26,3 +27,24 @@ class WeatherUndergroundObservation(Base):
     rain = Column(Float)
     snow = Column(Float)
     condition = Column(String)
+
+
+class WeatherUndergroundObservationSchema(Schema):
+    class Meta:
+        ordered = True
+    zipcode = fields.String()
+    recorded_at = fields.DateTime()
+    temperature = fields.Float()
+    dew_point = fields.Float()
+    humidity = fields.Float()
+    wind_speed = fields.Float()
+    wind_gust = fields.Float()
+    visibility = fields.Float()
+    pressure = fields.Float()
+    windchill = fields.Float()
+    heat_index = fields.Float()
+    precipitation = fields.Float()
+    fog = fields.Float()
+    rain = fields.Float()
+    snow = fields.Float()
+    condition = fields.String()

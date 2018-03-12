@@ -7,6 +7,7 @@ from mac_data.support import fapply, map_sleep
 from .schema import WeatherUndergroundAPIResponse
 from .processing import process_response, extract_observations, process_metadata
 from .api import WAIT, query_api
+from .models import WeatherUndergroundObservation, WeatherUndergroundObservationSchema
 
 get_observations = compose(                   # query the api and extract observations
     extract_observations,                     # get the list of observations from payload

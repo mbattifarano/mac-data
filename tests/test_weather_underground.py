@@ -1,14 +1,17 @@
 import pytest
 import requests_mock
+from cStringIO import StringIO
 
 import datetime
 import pytz
 import simplejson as json
+from marshmallow import Schema, fields
 from toolz import get_in, remove, compose
 from mac_data.support import dict_flatten
 from mac_data.data_sources import weather_underground as w
 from mac_data.data_sources.weather_underground.schema import NULL_VALUES
 from mac_data.data_sources.weather_underground.processing import rename_keys
+from mac_data.data_sources.weather_underground.output import CSVAdapter
 
 
 @pytest.fixture
@@ -156,3 +159,22 @@ def test_collect_many(response):
                 assert ob.rain == read_float(raw_ob['rain'])
                 assert ob.snow == read_float(raw_ob['snow'])
                 assert ob.condition == raw_ob['icon']
+
+
+def test_csv_adapter(file_object):
+    class TestSchema(Schema):
+        key = fields.Integer()
+        value = fields.String()
+    data = [
+        dict(key=1, value='derp'),
+        dict(key=0, value='foo')
+    ]
+    expected = (
+        "key,value\r\n"
+        "1,derp\r\n"
+        "0,foo\r\n"
+    )
+    adapter = CSVAdapter(file_object, TestSchema)
+    adapter.dump(data)
+    file_object.seek(0)
+    assert file_object.read() == expected

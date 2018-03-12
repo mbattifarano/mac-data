@@ -1,4 +1,5 @@
 import time
+import datetime
 from toolz import curry
 
 
@@ -32,6 +33,22 @@ def map_sleep(t, f, arglist):
     for arg in arglist:
         yield f(arg)
         time.sleep(t)
+
+
+ONE_DAY = datetime.timedelta(days=1)
+
+
+def date_iter(start, stop, step=ONE_DAY):
+    dt = start
+    while dt < stop:
+        yield dt
+        dt += step
+
+
+def flatten(l):
+    for it in l:
+        for el in it:
+            yield el
 
 
 def _iteritems(d_l):

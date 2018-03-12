@@ -1,6 +1,8 @@
-import os
 import pytest
 import requests_mock
+import requests
+import simplejson as json
+from cStringIO import StringIO
 from click.testing import CliRunner
 
 import datetime
@@ -11,9 +13,11 @@ from toolz import get_in, remove, compose
 from mac_data import cli
 from mac_data.support import dict_flatten
 from mac_data.output import CSVAdapter
+from mac_data.exceptions import APIRequestFailed
 from mac_data.data_sources import weather_underground as w
 from mac_data.data_sources.weather_underground.schema import NULL_VALUES
 from mac_data.data_sources.weather_underground.processing import rename_keys
+from mac_data.data_sources.weather_underground.api import get_json_or_raise
 
 
 @pytest.fixture
@@ -59,6 +63,26 @@ def test_schema_values(response):
                     assert v == raw_value
                 else:
                     assert v == raw_float
+
+
+def test_get_json_or_raise_non_200():
+    response = requests.Response()
+    response.status_code = 403
+    with pytest.raises(APIRequestFailed):
+        get_json_or_raise(response)
+
+
+def test_get_json_or_raise_error():
+    response = requests.Response()
+    response.status_code = 200
+    data = {
+        'response': {
+            'error': 'request_failed'
+        }
+    }
+    response.raw = StringIO(json.dumps(data))
+    with pytest.raises(APIRequestFailed):
+        get_json_or_raise(response)
 
 
 def test_processing_pipeline(response):
@@ -238,10 +262,28 @@ def test_cli(response, tmpfile):
     url = "http://api.wunderground.com/api/the_api_key/history_20170309/q/15217.json"
     with requests_mock.Mocker() as m:
         m.get(url, text=response)
-        runner.invoke(cli.main, args)
+        result = runner.invoke(cli.main, args)
+        assert result.exit_code == 0
         tmpfile.seek(0)
         contents = tmpfile.read()
         lines = contents.splitlines()
         header = lines[0]
         assert header == 'zipcode,recorded_at,temperature,dew_point,humidity,wind_speed,wind_gust,visibility,pressure,windchill,heat_index,precipitation,fog,rain,snow,condition'
         assert len(lines) == 46
+
+
+def test_cli_noop(response):
+    runner = CliRunner()
+    args = [
+        '-v',
+        '--key-file',
+        'tests/fixtures/test_key_file.ini',
+        'weather_underground',
+        '2017-03-09',
+        '2017-03-10'
+    ]
+    url = "http://api.wunderground.com/api/the_api_key/history_20170309/q/15217.json"
+    with requests_mock.Mocker() as m:
+        m.get(url, text=response)
+        result = runner.invoke(cli.main, args)
+        assert result.exit_code == 0

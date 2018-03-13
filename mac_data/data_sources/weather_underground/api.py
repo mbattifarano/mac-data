@@ -13,7 +13,9 @@ from mac_data.support import attribute
 
 log = logging.getLogger(__name__)
 
-WAIT = 62  # number of seconds to wait between API calls
+# number of seconds to wait between API calls
+# free API limit is 10 per minute / 500 per day
+WAIT = 7
 
 
 def request_url(api_key, on_date, zipcode):

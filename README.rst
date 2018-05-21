@@ -3,8 +3,8 @@ Urban data scraper
 ==================
 
 
-.. image:: https://img.shields.io/pypi/v/mac_data.svg
-        :target: https://pypi.python.org/pypi/mac_data
+.. image:: https://img.shields.io/pypi/v/mac-data.svg
+        :target: https://pypi.python.org/pypi/mac-data
 
 .. image:: https://img.shields.io/travis/mbattifarano/mac-data.svg
         :target: https://travis-ci.org/mbattifarano/mac-data
@@ -14,8 +14,8 @@ Urban data scraper
         :alt: Documentation Status
 
 
-.. image:: https://pyup.io/repos/github/mbattifarano/mac_data/shield.svg
-     :target: https://pyup.io/repos/github/mbattifarano/mac_data/
+.. image:: https://pyup.io/repos/github/mbattifarano/mac-data/shield.svg
+     :target: https://pyup.io/repos/github/mbattifarano/mac-data/
      :alt: Updates
 
 

@@ -4,4 +4,4 @@
 
 __author__ = "Matt Battifarano"
 __email__ = "mbattifa@andrew.cmu.edu"
-__version__ = '0.0.0'
+__version__ = '0.0.1'

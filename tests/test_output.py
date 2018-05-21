@@ -1,8 +1,11 @@
 from marshmallow import Schema, fields
 from mac_data import output
 
+
 def test_csv_adapter(file_object):
     class TestSchema(Schema):
+        class Meta:
+            ordered = True
         key = fields.Integer()
         value = fields.String()
     data = [
@@ -17,4 +20,5 @@ def test_csv_adapter(file_object):
     adapter = output.CSVAdapter(file_object, TestSchema)
     adapter.dump(data)
     file_object.seek(0)
-    assert file_object.read() == expected
+    actual = file_object.read()
+    assert actual == expected

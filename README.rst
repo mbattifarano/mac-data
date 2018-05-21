@@ -6,8 +6,8 @@ Urban data scraper
 .. image:: https://img.shields.io/pypi/v/mac_data.svg
         :target: https://pypi.python.org/pypi/mac_data
 
-.. image:: https://img.shields.io/travis/mbattifarano/mac_data.svg
-        :target: https://travis-ci.org/mbattifarano/mac_data
+.. image:: https://img.shields.io/travis/mbattifarano/mac-data.svg
+        :target: https://travis-ci.org/mbattifarano/mac-data
 
 .. image:: https://readthedocs.org/projects/mac-data/badge/?version=latest
         :target: https://mac-data.readthedocs.io/en/latest/?badge=latest

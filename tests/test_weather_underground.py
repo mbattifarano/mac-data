@@ -7,12 +7,9 @@ from click.testing import CliRunner
 
 import datetime
 import pytz
-import simplejson as json
-from marshmallow import Schema, fields
 from toolz import get_in, remove, compose
 from mac_data import cli
 from mac_data.support import dict_flatten
-from mac_data.output import CSVAdapter
 from mac_data.exceptions import APIRequestFailed
 from mac_data.data_sources import weather_underground as w
 from mac_data.data_sources.weather_underground.schema import NULL_VALUES
@@ -49,7 +46,9 @@ def test_schema_values(response):
             tz = pytz.timezone(raw_value['tzname'])
             dt_components = compose(int, raw_value.__getitem__)
             dt = datetime.datetime(*map(dt_components,
-                                        ['year', 'mon', 'mday', 'hour', 'min']))
+                                        ['year', 'mon', 'mday', 'hour', 'min']
+                                        )
+                                   )
             assert v == tz.localize(dt)
         elif v is None:
             assert raw_value in NULL_VALUES
@@ -96,15 +95,19 @@ def test_processing_pipeline(response):
             else:
                 return value
     with requests_mock.Mocker() as m:
-        m.get("http://api.wunderground.com/api/the_api_key/history_20170309/q/15217.json",
+        m.get("http://api.wunderground.com/api/the_api_key/"
+              "history_20170309/q/15217.json",
               text=response)
-        observations = w.collect_data("the_api_key", datetime.date(2017, 3, 9), "15217")
+        observations = w.collect_data("the_api_key",
+                                      datetime.date(2017, 3, 9),
+                                      "15217")
         raw_data = json.loads(response)
         raw_observations = raw_data['history']['observations']
         assert len(observations) == len(raw_observations)
         for ob, raw_ob in zip(observations, raw_observations):
             assert ob.zipcode == "15217"
-            # The api call is mocked to return a canned response from 2016-09-01
+            # The api call is mocked to return a canned response
+            # from 2016-09-01
             assert ob.recorded_at.date() == datetime.date(2016, 9, 1)
             assert ob.temperature == read_float(raw_ob['tempi'])
             assert ob.dew_point == read_float(raw_ob['dewpti'])
@@ -158,19 +161,24 @@ def test_collect_many(response):
     zipcodes = ["15217", "15216"]
     t = 0  # don't sleep during tests
     with requests_mock.Mocker() as m:
-        m.get("http://api.wunderground.com/api/the_api_key/history_20170309/q/15217.json",
+        m.get("http://api.wunderground.com/api/the_api_key/"
+              "history_20170309/q/15217.json",
               text=response)
-        m.get("http://api.wunderground.com/api/the_api_key/history_20170310/q/15216.json",
+        m.get("http://api.wunderground.com/api/the_api_key/"
+              "history_20170310/q/15216.json",
               text=response)
         raw_data = json.loads(response)
         raw_observations = raw_data['history']['observations']
         raw_observations = raw_observations + raw_observations
-        observations = list(w.collect_many("the_api_key", on_dates, zipcodes, t))
+        observations = list(w.collect_many("the_api_key", on_dates,
+                                           zipcodes, t)
+                            )
         assert len(observations) == len(raw_observations)
         for i, (ob, raw_ob) in enumerate(zip(observations, raw_observations)):
             zipcode = "15217" if i < len(observations)/2 else "15216"
             assert ob.zipcode == zipcode
-            # The api call is mocked to return a canned response from 2016-09-01
+            # The api call is mocked to return a canned response
+            # from 2016-09-01
             assert ob.recorded_at.date() == datetime.date(2016, 9, 1)
             assert ob.temperature == read_float(raw_ob['tempi'])
             assert ob.dew_point == read_float(raw_ob['dewpti'])
@@ -202,14 +210,16 @@ def test_collect_many_one(response):
     zipcodes = ["15217"]
     t = 0  # don't sleep during tests
     with requests_mock.Mocker() as m:
-        m.get("http://api.wunderground.com/api/the_api_key/history_20170309/q/15217.json",
+        m.get("http://api.wunderground.com/api/the_api_key/"
+              "history_20170309/q/15217.json",
               text=response)
         raw_data = json.loads(response)
         raw_observations = raw_data['history']['observations']
         obs_iter = list(w.collect_many("the_api_key", on_dates, zipcodes, t))
         for ob, raw_ob in zip(obs_iter, raw_observations):
             assert ob.zipcode == "15217"
-            # The api call is mocked to return a canned response from 2016-09-01
+            # The api call is mocked to return a canned response
+            # from 2016-09-01
             assert ob.recorded_at.date() == datetime.date(2016, 9, 1)
             assert ob.temperature == read_float(raw_ob['tempi'])
             assert ob.dew_point == read_float(raw_ob['dewpti'])
@@ -227,7 +237,6 @@ def test_collect_many_one(response):
             assert ob.condition == raw_ob['icon']
 
 
-
 def test_cli(response, tmpfile):
     runner = CliRunner()
     args = [
@@ -241,7 +250,8 @@ def test_cli(response, tmpfile):
         '--csv-out',
         tmpfile.name
     ]
-    url = "http://api.wunderground.com/api/the_api_key/history_20170309/q/15217.json"
+    url = ("http://api.wunderground.com/api"
+           "/the_api_key/history_20170309/q/15217.json")
     with requests_mock.Mocker() as m:
         m.get(url, text=response)
         result = runner.invoke(cli.main, args)
@@ -250,7 +260,9 @@ def test_cli(response, tmpfile):
         contents = tmpfile.read()
         lines = contents.splitlines()
         header = lines[0]
-        assert header == 'zipcode,recorded_at,temperature,dew_point,humidity,wind_speed,wind_gust,visibility,pressure,windchill,heat_index,precipitation,fog,rain,snow,condition'
+        assert header == ('zipcode,recorded_at,temperature,dew_point,humidity,'
+                          'wind_speed,wind_gust,visibility,pressure,windchill,'
+                          'heat_index,precipitation,fog,rain,snow,condition')
         assert len(lines) == 46
 
 
@@ -264,7 +276,28 @@ def test_cli_noop(response):
         '2017-03-09',
         '2017-03-10'
     ]
-    url = "http://api.wunderground.com/api/the_api_key/history_20170309/q/15217.json"
+    url = ("http://api.wunderground.com/api"
+           "/the_api_key/history_20170309/q/15217.json")
+    with requests_mock.Mocker() as m:
+        m.get(url, text=response)
+        result = runner.invoke(cli.main, args)
+        assert result.exit_code == 0
+
+
+def test_cli_empty_dates():
+    """test the weather underground cli"""
+    runner = CliRunner()
+    args = [
+        '-v',
+        '--key-file',
+        'tests/fixtures/test_key_file.ini',
+        'weather_underground',
+        '2017-03-09',
+        '2017-03-09',
+        '15217',
+    ]
+    url = ("http://api.wunderground.com/api"
+           "/the_api_key/history_20170309/q/15217.json")
     with requests_mock.Mocker() as m:
         m.get(url, text=response)
         result = runner.invoke(cli.main, args)

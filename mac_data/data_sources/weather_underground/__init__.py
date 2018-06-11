@@ -1,34 +1,33 @@
 """Weather Underground Data Collection API
 """
 import logging
-import itertools as it
 
 from toolz import compose, juxt, map, curry
 from toolz.curried import get, do
 
-from mac_data.support import fapply, map_sleep, flatten, date_range
-from mac_data.output import CSVAdapter
-from .api import WAIT, query_api
+from mac_data.support import fapply, map_sleep, flatten, date_range  # NOQA
+from mac_data.output import CSVAdapter  # NOQA
+from .api import WAIT, query_api  # NOQA
 from .schema import WeatherUndergroundAPIResponse
-from .processing import process_response, extract_observations, process_metadata
-from .models import WeatherUndergroundObservation, WeatherUndergroundObservationSchema
+from .processing import process_response, extract_observations, process_metadata  # NOQA
+from .models import WeatherUndergroundObservation, WeatherUndergroundObservationSchema  # NOQA
 
 log = logging.getLogger(__name__)
 
-get_observations = compose(                   # query the api and extract observations
-    extract_observations,                     # get the list of observations from payload
+get_observations = compose(                   # extract observations from api
+    extract_observations,                     # get observations from payload
     get(0),                                   # drop the deserialization errors
     WeatherUndergroundAPIResponse().load,     # deserialize api response
     query_api                                 # query the api
 )
 
-collect_data = compose(                       # create observation models from api response
+collect_data = compose(         # create observation models from api response
     do(compose(log.info,
                "Created {} observations".format,
                len)),
-    process_response,                         # create observations models
-    fapply(map),                              # merge metadata into each observation
-    juxt(process_metadata, get_observations)  # process query params as metadata and api call
+    process_response,           # create observations models
+    fapply(map),                # merge metadata into each observation
+    juxt(process_metadata, get_observations)  # query params as metadata
 )
 
 

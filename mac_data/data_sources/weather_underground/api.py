@@ -26,8 +26,12 @@ def request_url(api_key, on_date, zipcode):
     :param zipcode: str zip code to query
     :return: str query url
     """
-    template = "http://api.wunderground.com/api/{key}/history_{date}/q/{zipcode}.json"
-    return template.format(key=api_key, date=on_date.strftime("%Y%m%d"), zipcode=zipcode)
+    template = ("http://api.wunderground.com/api/"
+                "{key}/history_{date}/q/{zipcode}.json")
+    return template.format(
+            key=api_key,
+            date=on_date.strftime("%Y%m%d"),
+            zipcode=zipcode)
 
 
 api_query_args = getargspec(request_url).args

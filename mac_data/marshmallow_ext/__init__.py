@@ -1,4 +1,4 @@
-from fields import Union, Either, NullObject
+from fields import Union, Either, NullObject  # NOQA
 
 
 def fieldnames(schema):

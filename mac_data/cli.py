@@ -33,14 +33,17 @@ def _log_level_from_verbosity(v):
 @click.option('-v', '--verbose', count=True)
 def main(ctx, key_file, verbose):
     """Command line tool for data collection from web APIs"""
-    ctx.obj = {
-        'key_file': key_file
-    }
     logging.basicConfig(
         level=_log_level_from_verbosity(verbose),
         format="%(asctime)s %(levelname)s %(name)s -- %(message)s",
         datefmt="%xT%X"
     )
+    log = logging.getLogger(__name__)
+    ctx.obj = {
+        'key_file': key_file,
+        'log': log,
+    }
+    log.debug("mac-data cli v%s", mac_data.__version__)
     return 0
 
 
@@ -54,14 +57,23 @@ def main(ctx, key_file, verbose):
 def weather_underground(ctx, start_date, end_date, zip_codes, csv_out):
     """Collect data from the Weather Underground API
     """
+    log = ctx.obj['log']
     api_key = get_api_key(ctx.obj['key_file'], 'weather_underground')
     if not zip_codes:
-        return []
-    on_dates, zipcodes = map(list, zip(*it.product(date_range(start_date, end_date), zip_codes)))
+        log.warning("No zip codes provided. Doing nothing.")
+        return 0
+    dates = list(date_range(start_date, end_date))
+    if not dates:
+        log.warning("Empty date range provided. "
+                    "This happens if the start and end dates are the same."
+                    )
+        return 0
+    on_dates, zipcodes = map(list, zip(*it.product(dates, zip_codes)))
     observations = list(wu.collect_many(api_key, on_dates, zipcodes, wu.WAIT))
     if csv_out is not None:
         log.info("Writing data to {}".format(csv_out.name))
-        adapter = output.CSVAdapter(csv_out, wu.WeatherUndergroundObservationSchema)
+        adapter = output.CSVAdapter(csv_out,
+                                    wu.WeatherUndergroundObservationSchema)
         adapter.dump(observations)
     return 0
 

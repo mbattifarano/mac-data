@@ -1,5 +1,5 @@
-click==6.7
-marshmallow==2.15.5
+click==7.0
+marshmallow==2.15.6
 requests==2.19.1
 pytz==2018.5
-SQLAlchemy==1.2.11
+SQLAlchemy==1.2.12

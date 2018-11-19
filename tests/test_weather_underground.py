@@ -243,7 +243,7 @@ def test_cli(response, tmpfile):
         '-v',
         '--key-file',
         'tests/fixtures/test_key_file.ini',
-        'weather_underground',
+        'weather-underground',
         '2017-03-09',
         '2017-03-10',
         '15217',
@@ -255,7 +255,7 @@ def test_cli(response, tmpfile):
     with requests_mock.Mocker() as m:
         m.get(url, text=response)
         result = runner.invoke(cli.main, args)
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output
         tmpfile.seek(0)
         contents = tmpfile.read()
         lines = contents.splitlines()
@@ -272,7 +272,7 @@ def test_cli_noop(response):
         '-v',
         '--key-file',
         'tests/fixtures/test_key_file.ini',
-        'weather_underground',
+        'weather-underground',
         '2017-03-09',
         '2017-03-10'
     ]
@@ -281,7 +281,7 @@ def test_cli_noop(response):
     with requests_mock.Mocker() as m:
         m.get(url, text=response)
         result = runner.invoke(cli.main, args)
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output
 
 
 def test_cli_empty_dates():
@@ -291,7 +291,7 @@ def test_cli_empty_dates():
         '-v',
         '--key-file',
         'tests/fixtures/test_key_file.ini',
-        'weather_underground',
+        'weather-underground',
         '2017-03-09',
         '2017-03-09',
         '15217',
@@ -301,4 +301,4 @@ def test_cli_empty_dates():
     with requests_mock.Mocker() as m:
         m.get(url, text=response)
         result = runner.invoke(cli.main, args)
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output

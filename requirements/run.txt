@@ -1,5 +1,5 @@
 click==7.1.2
 marshmallow==3.9.1
 requests==2.25.0
-pytz==2018.9
+pytz==2020.4
 SQLAlchemy==1.2.18

@@ -13,4 +13,4 @@ simplejson==3.17.6
 toolz==0.12.0
 pytest-blockage==0.2.4
 pytest-mock==3.10.0
-requests-mock==1.5.2
+requests-mock==1.10.0

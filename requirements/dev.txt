@@ -11,6 +11,6 @@ pytest==8.3.2
 pytest-runner==6.0.1
 simplejson==3.19.2
 toolz==0.12.1
-pytest-blockage==0.2.2
+pytest-blockage==0.2.4
 pytest-mock==1.10.1
 requests-mock==1.5.2

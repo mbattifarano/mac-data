@@ -2,4 +2,4 @@ click==8.1.7
 marshmallow==3.22.0
 requests==2.32.3
 pytz==2024.2
-SQLAlchemy==1.2.18
+SQLAlchemy==2.0.34
